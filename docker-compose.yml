@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  php-fpm:
+    container_name: php-fpm
+    build:
+      context: php-fpm
+      dockerfile: Dockerfile
+    expose:
+      - 9000
+    volumes:
+      - ./code:/var/www:consistent
+    depends_on:
+      - database
+
+  nginx:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    links:
+      - php-fpm
+    ports:
+      - 8999:80
+    volumes:
+      - "./nginx/php-fpm.conf:/etc/nginx/sites-available/default.conf"
+    depends_on:
+      - database
+      - php-fpm
+
+  database:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=phone_book
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    ports:
+      - "33064:3306"
